@@ -7,12 +7,12 @@ import multiprocessing
 
 # handles the z layer of a 3d noise using threads and reassigning of existing array
 class Noise_Handler:
-    def __init__(self, xy_shape: array, seed: int, details: int, threads: int = None):
+    def __init__(self, xy_shape: array, seed: int, details: int, threads: int = None, buffer_size: int = 20):
         if threads is None:
             threads = multiprocessing.cpu_count()
         self.threads = threads
         self.seed = seed
-        self.buffer_size = 20   # amount of simultaneously stored noise layers
+        self.buffer_size = buffer_size   # amount of simultaneously stored noise layers
         self.current_layer = 0
         self.buffer_size_loaded = 0
 

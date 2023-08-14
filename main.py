@@ -1,12 +1,7 @@
 import pygame
-import numpy as np
 from numpy import array
-from opensimplex import OpenSimplex
 from marching_squares import Marching_Square
 from noise_handler import Noise_Handler
-
-import cProfile
-import pstats
 
 
 class App:
@@ -19,17 +14,20 @@ class App:
 
         self._running = True
         self.display = None
+        self.noise_details = 1
+        self.number_squares = 10  # scales up VERY badly (if its not loading try turning off self.move_through_z)
+        self.noise_buffer_size = 20
+        self.noise_handler_threads = 2
+        self.draw_raster = False
+        self.move_through_z = True
 
-        self.size = (800, 800)  # must be quadratic (for now)
-        self.number_squares = 10
+        self.size = (800, 800)  # must be quadratic
         self.square_size = self.size[0] / self.number_squares
         self.noise_dimension = self.number_squares * 2 + 1
 
-        self.draw_raster = False
-
         self.marching_squares = [[] * self.number_squares for _ in range(self.number_squares)]
 
-        self.noise_handler = Noise_Handler(array([self.noise_dimension, self.noise_dimension]), seed=1, details=5, threads=2)
+        self.noise_handler = Noise_Handler(array([self.noise_dimension, self.noise_dimension]), seed=1, details=self.noise_details, threads=self.noise_handler_threads, buffer_size=self.noise_buffer_size)
 
         self.noise_vals = self.noise_handler.get_next_layer()
 
@@ -46,6 +44,7 @@ class App:
         Marching_Square.set_class_vars()
 
         self.add_marching_squares()
+        self.update_marching_squares()
 
         self.on_execute()
 
@@ -59,8 +58,9 @@ class App:
 
     # loop which will be executed at fixed rate (for physics, animations and such)
     def on_loop(self):
-        self.noise_vals = self.noise_handler.get_next_layer()
-        self.update_marching_squares()
+        if self.move_through_z:
+            self.noise_vals = self.noise_handler.get_next_layer()
+            self.update_marching_squares()
 
     # loop which will only be called when enough cpu time is available
     def on_render(self):
